@@ -9,12 +9,12 @@ import (
 	"github.com/google/go-github/v53/github"
 )
 
-func CreateTeams(client *github.Client, sourceOrg, targetOrg string) {
+func CreateTeams(sourceClient, targetClient *github.Client, sourceOrg, targetOrg string) {
 	// Get teams from Source Org
-	sourceTeams := getSourceOrgTeams(client, sourceOrg)
+	sourceTeams := getSourceOrgTeams(sourceClient, sourceOrg)
 
 	// Create teams in Target Org
-	createTargetTeams(client, targetOrg, sourceTeams)
+	createTargetTeams(targetClient, targetOrg, sourceTeams)
 }
 
 func getSourceOrgTeams(client *github.Client, org string) []*github.Team {

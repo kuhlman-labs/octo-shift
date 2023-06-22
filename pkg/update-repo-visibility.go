@@ -10,16 +10,16 @@ import (
 	"github.com/google/go-github/v53/github"
 )
 
-func UpdateRepoVisibility(client *github.Client, sourceOrg, targetOrg, sourceRepo, targetRepo string) {
+func UpdateRepoVisibility(sourceClient, targetClient *github.Client, sourceOrg, targetOrg, sourceRepo, targetRepo string) {
 	// GHEC Repo
 	ghecOrgName := "kuhman-labs-fabrikam-org"
 	ghecRepoName := "test-repo"
 
 	// Get visibility of GHES repo
-	sourceVisibility := getSourceRepoVisibility(client, sourceOrg, sourceRepo)
+	sourceVisibility := getSourceRepoVisibility(sourceClient, sourceOrg, sourceRepo)
 
 	// Get visibility of GHEC repo
-	targetVisibility := getTargetRepoVisibility(client, targetOrg, targetRepo)
+	targetVisibility := getTargetRepoVisibility(targetClient, targetOrg, targetRepo)
 
 	// Compare visibilities
 	if sourceVisibility == targetVisibility {
@@ -28,7 +28,7 @@ func UpdateRepoVisibility(client *github.Client, sourceOrg, targetOrg, sourceRep
 	}
 
 	// Update visibility of Target repo
-	updateTargetRepoVisibility(client, ghecOrgName, ghecRepoName, sourceVisibility)
+	updateTargetRepoVisibility(targetClient, ghecOrgName, ghecRepoName, sourceVisibility)
 }
 
 func getSourceRepoVisibility(client *github.Client, orgName, repoName string) (visibility string) {
