@@ -1,6 +1,6 @@
-// This script will update the webhooks of a GHEC Organization to add a secret.
+// This script will update the webhooks of a target Organization to add a secret.
 
-package main
+package octoshift
 
 import (
 	"context"
@@ -14,26 +14,25 @@ type repoHook struct {
 	hooks    []*github.Hook
 }
 
-func updateWebhooks(secret string) {
-	// GHEC Org
-	ghecOrgName := "kuhman-labs-fabrikam-org"
+func UpdateWebhooks(client *github.Client, secret string) {
+	// target Org
+	targetOrgName := "kuhman-labs-fabrikam-org"
 
-	// Get webhooks from GHEC Org
-	ghecOrgWebhooks := getGHECOrgWebhooks(ghecOrgName)
+	// Get webhooks from target Org
+	targetOrgWebhooks := getTargetOrgWebhooks(client, targetOrgName)
 
-	// Get webhooks from GHEC Repo
-	ghecRepoWebhooks := getGHECRepoWebhooks(ghecOrgName)
+	// Get webhooks from target Repo
+	targetRepoWebhooks := getTargetRepoWebhooks(client, targetOrgName)
 
 	// Add secret to Org webhooks
-	updateGHECOrgWebhooks(ghecOrgName, secret, ghecOrgWebhooks)
+	updateTargetOrgWebhooks(client, targetOrgName, secret, targetOrgWebhooks)
 
 	// Add secret to Repo webhooks
-	updateGHECRepoWebhooks(ghecOrgName, secret, ghecRepoWebhooks)
+	updateTargetRepoWebhooks(client, targetOrgName, secret, targetRepoWebhooks)
 
 }
 
-func getGHECOrgWebhooks(orgName string) []*github.Hook {
-	client := NewClient()
+func getTargetOrgWebhooks(client *github.Client, orgName string) []*github.Hook {
 
 	webhooks, _, err := client.Organizations.ListHooks(context.Background(), orgName, nil)
 	if err != nil {
@@ -44,8 +43,7 @@ func getGHECOrgWebhooks(orgName string) []*github.Hook {
 	return webhooks
 }
 
-func getGHECRepoWebhooks(orgName string) []repoHook {
-	client := NewClient()
+func getTargetRepoWebhooks(client *github.Client, orgName string) []repoHook {
 
 	// Get Repos from Org
 	repos, _, err := client.Repositories.ListByOrg(context.Background(), orgName, nil)
@@ -80,8 +78,7 @@ func getGHECRepoWebhooks(orgName string) []repoHook {
 	return repoHooks
 }
 
-func updateGHECOrgWebhooks(orgName, secret string, webhooks []*github.Hook) {
-	client := NewClient()
+func updateTargetOrgWebhooks(client *github.Client, orgName, secret string, webhooks []*github.Hook) {
 
 	for _, webhook := range webhooks {
 
@@ -102,8 +99,7 @@ func updateGHECOrgWebhooks(orgName, secret string, webhooks []*github.Hook) {
 	}
 }
 
-func updateGHECRepoWebhooks(orgName, secret string, webhooks []repoHook) {
-	client := NewClient()
+func updateTargetRepoWebhooks(client *github.Client, orgName, secret string, webhooks []repoHook) {
 
 	for _, webhook := range webhooks {
 		for _, hook := range webhook.hooks {

@@ -1,6 +1,6 @@
 // This script will query a given GHES organization for teams and create those teams in a given GHEC organization.
 
-package main
+package octoshift
 
 import (
 	"context"
@@ -9,24 +9,16 @@ import (
 	"github.com/google/go-github/v53/github"
 )
 
-func createTeams() {
-	// GHEC Org
-	ghecOrgName := "kuhman-labs-fabrikam-org"
+func CreateTeams(client *github.Client, sourceOrg, targetOrg string) {
+	// Get teams from Source Org
+	sourceTeams := getSourceOrgTeams(client, sourceOrg)
 
-	// GHES Org
-	ghesOrgName := "Engineering"
-
-	// Get teams from GHES Org
-	ghesTeams := getGHESOrgTeams(ghesOrgName)
-
-	// Create teams in GHEC Org
-	createGHECTeams(ghecOrgName, ghesTeams)
+	// Create teams in Target Org
+	createTargetTeams(client, targetOrg, sourceTeams)
 }
 
-func getGHESOrgTeams(orgName string) []*github.Team {
-	client := NewEnterpriseServerClient()
-
-	teams, _, err := client.Teams.ListTeams(context.Background(), orgName, nil)
+func getSourceOrgTeams(client *github.Client, org string) []*github.Team {
+	teams, _, err := client.Teams.ListTeams(context.Background(), org, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,8 +26,7 @@ func getGHESOrgTeams(orgName string) []*github.Team {
 	return teams
 }
 
-func createGHECTeams(orgName string, teams []*github.Team) {
-	client := NewClient()
+func createTargetTeams(client *github.Client, orgName string, teams []*github.Team) {
 
 	for _, team := range teams {
 		teamName := team.GetName()
