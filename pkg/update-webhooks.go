@@ -14,17 +14,19 @@ type repoHook struct {
 	hooks    []*github.Hook
 }
 
-func UpdateWebhooks(client *github.Client, targetOrg, secret string) {
+func UpdateWebhooks(client *github.Client, targetOrg, secret string, includeRepos bool) {
 
 	// Get webhooks from target Org
 	targetOrgWebhooks := getTargetOrgWebhooks(client, targetOrg)
 	// Add secret to Org webhooks
 	updateTargetOrgWebhooks(client, targetOrg, secret, targetOrgWebhooks)
 
-	// Get webhooks from target Repo
-	targetRepoWebhooks := getTargetRepoWebhooks(client, targetOrg)
-	// Add secret to Repo webhooks
-	updateTargetRepoWebhooks(client, targetOrg, secret, targetRepoWebhooks)
+	if includeRepos {
+		// Get webhooks from target Repo
+		targetRepoWebhooks := getTargetRepoWebhooks(client, targetOrg)
+		// Add secret to Repo webhooks
+		updateTargetRepoWebhooks(client, targetOrg, secret, targetRepoWebhooks)
+	}
 
 }
 

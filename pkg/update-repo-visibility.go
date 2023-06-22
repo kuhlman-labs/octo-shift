@@ -4,60 +4,17 @@ package octoshift
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/google/go-github/v53/github"
 )
 
-func UpdateRepoVisibility(sourceClient, targetClient *github.Client, sourceOrg, targetOrg, sourceRepo, targetRepo string) {
-	// GHEC Repo
-	ghecOrgName := "kuhman-labs-fabrikam-org"
-	ghecRepoName := "test-repo"
+func UpdateRepoVisibility(sourceClient, targetClient *github.Client, sourceOrg, targetOrg string) {
+	// Get repos from Source Org
+	sourceRepos := getSourceRepos(sourceClient, sourceOrg)
 
-	// Get visibility of GHES repo
-	sourceVisibility := getSourceRepoVisibility(sourceClient, sourceOrg, sourceRepo)
-
-	// Get visibility of GHEC repo
-	targetVisibility := getTargetRepoVisibility(targetClient, targetOrg, targetRepo)
-
-	// Compare visibilities
-	if sourceVisibility == targetVisibility {
-		log.Printf("Visibility of %s is already %s", targetRepo, sourceVisibility)
-		return
-	}
-
-	// Update visibility of Target repo
-	updateTargetRepoVisibility(targetClient, ghecOrgName, ghecRepoName, sourceVisibility)
-}
-
-func getSourceRepoVisibility(client *github.Client, orgName, repoName string) (visibility string) {
-
-	log.Printf("Getting visibility of %s", repoName)
-
-	repo, _, err := client.Repositories.Get(context.Background(), orgName, repoName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if repo.GetVisibility() == "public" {
-		return "internal"
-	}
-
-	return repo.GetVisibility()
-}
-
-func getTargetRepoVisibility(client *github.Client, orgName, repoName string) (visibility string) {
-	log.Printf("Getting visibility of %s", repoName)
-
-	repo, _, err := client.Repositories.Get(context.Background(), orgName, repoName)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(repo.GetVisibility())
-
-	return repo.GetVisibility()
+	// Update repos in Target Org
+	updateTargetRepos(targetClient, targetOrg, sourceRepos)
 }
 
 func updateTargetRepoVisibility(client *github.Client, orgName, repoName, visibility string) {
@@ -73,4 +30,23 @@ func updateTargetRepoVisibility(client *github.Client, orgName, repoName, visibi
 	}
 
 	log.Printf("Visibility of %s updated to %s", repoName, visibility)
+}
+
+func getSourceRepos(client *github.Client, org string) []*github.Repository {
+	repos, _, err := client.Repositories.ListByOrg(context.Background(), org, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return repos
+}
+
+func updateTargetRepos(client *github.Client, targetOrg string, repos []*github.Repository) {
+	for _, repo := range repos {
+		visibility := repo.GetVisibility()
+		if visibility == "public" {
+			visibility = "internal"
+		}
+		updateTargetRepoVisibility(client, targetOrg, repo.GetName(), visibility)
+	}
 }

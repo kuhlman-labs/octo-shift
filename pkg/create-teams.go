@@ -42,24 +42,27 @@ func createTargetTeams(client *github.Client, orgName string, teams []*github.Te
 			log.Fatal(err)
 		}
 
-		// Get External Group based on LDAP DN
-		externalGroupList, _, err := client.Teams.ListExternalGroupsForTeamBySlug(context.Background(), orgName, teamLDAPMapping)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// Get Group ID
-		externalGroupID := externalGroupList.Groups[0].GetGroupID()
-
-		// Add LDAP mapping to team
-		teamLDAPMappingOptions := &github.ExternalGroup{
-			GroupID: &externalGroupID,
-		}
-		_, _, err = client.Teams.UpdateConnectedExternalGroup(context.Background(), orgName, createdTeam.GetName(), teamLDAPMappingOptions)
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		log.Printf("Created team %s in %s\n", createdTeam.GetName(), orgName)
+
+		// List External Groups in an org
+		externalGroupList, _, err := client.Teams.ListExternalGroups(context.Background(), orgName, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, externalGroup := range externalGroupList.Groups {
+			if externalGroup.GetGroupName() == teamLDAPMapping {
+				externalGroupID := externalGroup.GetGroupID()
+				// Add LDAP mapping to team
+				teamLDAPMappingOptions := &github.ExternalGroup{
+					GroupID: &externalGroupID,
+				}
+				_, _, err = client.Teams.UpdateConnectedExternalGroup(context.Background(), orgName, createdTeam.GetName(), teamLDAPMappingOptions)
+				if err != nil {
+					log.Fatal(err)
+				}
+				log.Printf("Added LDAP mapping %s to team %s in %s\n", teamLDAPMapping, createdTeam.GetName(), orgName)
+			}
+		}
 	}
 }

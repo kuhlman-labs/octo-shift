@@ -15,9 +15,7 @@ func main() {
 	updateRepoVisibilityCmd := flag.NewFlagSet("update-repo-visibility", flag.ExitOnError)
 	// update repo visibility flags
 	updateRepoVisibilitySourceOrg := updateRepoVisibilityCmd.String("source-org", "", "The name of the source organization that owns the repository")
-	updateRepoVisibilitySourceRepo := updateRepoVisibilityCmd.String("source-repo", "", "The name of the source repository")
 	updateRepoVisibilityTargetOrg := updateRepoVisibilityCmd.String("target-org", "", "The name of the target organization that owns the repository")
-	updateRepoVisibilityTargetRepo := updateRepoVisibilityCmd.String("target-repo", "", "The name of the target repository")
 	updateRepoVisibilitySourceToken := updateRepoVisibilityCmd.String("source-token", "", "The token for the source GitHub Enterprise Server")
 	updateRepoVisibilitySourceURL := updateRepoVisibilityCmd.String("source-url", "", "The URL for the source GitHub Enterprise Server")
 	updateRepoVisibilityTargetToken := updateRepoVisibilityCmd.String("target-token", "", "The token for the target GitHub Enterprise Cloud")
@@ -28,6 +26,7 @@ func main() {
 	updateWebhooksTargetOrg := updateWebhooksCmd.String("target-org", "", "The name of the target organization.")
 	updateWebhooksTargetToken := updateWebhooksCmd.String("target-token", "", "The token for the target GitHub Enterprise Cloud")
 	updateWebhooksSecret := updateWebhooksCmd.String("secret", "", "The secret for the webhook")
+	updateWebhooksIncludeRepos := updateWebhooksCmd.Bool("include-repo-webhooks", false, "Set to true to include repositories in the target organization. Set to false to only update the organization webhooks.")
 
 	// Subcommand: Create-Teams
 	createTeamsCmd := flag.NewFlagSet("create-teams", flag.ExitOnError)
@@ -60,23 +59,11 @@ func main() {
 			updateRepoVisibilityCmd.PrintDefaults()
 			os.Exit(1)
 		}
-		if *updateRepoVisibilitySourceRepo == "" {
-			fmt.Println("Please specify a source repository")
-			updateRepoVisibilityCmd.PrintDefaults()
-			os.Exit(1)
-		}
 
 		if *updateRepoVisibilityTargetOrg == "" {
 			fmt.Println("Please specify a target organization")
 			updateRepoVisibilityCmd.PrintDefaults()
 			os.Exit(1)
-		}
-
-		if *updateRepoVisibilityTargetRepo == "" {
-			fmt.Println("Please specify a target repository")
-			updateRepoVisibilityCmd.PrintDefaults()
-			os.Exit(1)
-
 		}
 
 		if *updateRepoVisibilitySourceToken == "" {
@@ -100,10 +87,11 @@ func main() {
 		sourceClient := octoshift.NewClient(*updateRepoVisibilitySourceToken, *updateRepoVisibilitySourceURL)
 		targetClient := octoshift.NewClient(*updateRepoVisibilityTargetToken, "https://api.github.com/")
 
-		octoshift.UpdateRepoVisibility(sourceClient, targetClient, *updateRepoVisibilitySourceOrg, *updateRepoVisibilityTargetOrg, *updateRepoVisibilitySourceRepo, *updateRepoVisibilityTargetRepo)
+		octoshift.UpdateRepoVisibility(sourceClient, targetClient, *updateRepoVisibilitySourceOrg, *updateRepoVisibilityTargetOrg)
 	}
 
 	if updateWebhooksCmd.Parsed() {
+
 		if *updateWebhooksTargetOrg == "" {
 			fmt.Println("Please specify a target organization")
 			updateWebhooksCmd.PrintDefaults()
@@ -126,10 +114,11 @@ func main() {
 		url := "https://api.github.com/"
 		client := octoshift.NewClient(token, url)
 
-		octoshift.UpdateWebhooks(client, *updateWebhooksTargetOrg, *updateWebhooksSecret)
+		octoshift.UpdateWebhooks(client, *updateWebhooksTargetOrg, *updateWebhooksSecret, *updateWebhooksIncludeRepos)
 	}
 
 	if createTeamsCmd.Parsed() {
+
 		if *createTeamsSourceOrg == "" {
 			fmt.Println("Please specify a source organization")
 			createTeamsCmd.PrintDefaults()
@@ -140,7 +129,6 @@ func main() {
 			fmt.Println("Please specify a source token")
 			createTeamsCmd.PrintDefaults()
 			os.Exit(1)
-
 		}
 
 		if *createTeamsSourceURL == "" {
