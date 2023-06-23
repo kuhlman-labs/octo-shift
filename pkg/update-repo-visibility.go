@@ -44,9 +44,15 @@ func getSourceRepos(client *github.Client, org string) []*github.Repository {
 func updateTargetRepos(client *github.Client, targetOrg string, repos []*github.Repository) {
 	for _, repo := range repos {
 		visibility := repo.GetVisibility()
-		if visibility == "public" {
+		switch visibility {
+		case "private":
+			visibility = "private"
+		case "internal":
+			visibility = "internal"
+		case "public":
 			visibility = "internal"
 		}
+
 		updateTargetRepoVisibility(client, targetOrg, repo.GetName(), visibility)
 	}
 }

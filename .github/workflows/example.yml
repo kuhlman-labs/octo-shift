@@ -1,0 +1,42 @@
+name: Example Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_org:
+        description: 'Source Organization for GitHub Enterprise Server'     
+        required: true
+      source_url:
+        description: 'Source URL for GitHub Enterprise Server'
+        required: true
+      target_org:
+        description: 'Target Organization for GitHub Enterprise Cloud'     
+        required: true
+
+jobs:
+  manual-workflow:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3.5.3
+    - name: Set up Go
+      uses: actions/setup-go@v4.0.1
+      with:
+        go-version: '1.20'
+    - name: Build
+      run: go build octo-shift.go
+    - name: Run create-teams command
+      run: ./octo-shift create-teams -source-org ${{ github.event.inputs.source_org }}  -source-url ${{ github.event.inputs.source_url}}  -source-token ${{ secrets.SOURCE_TOKEN }} -target-org ${{ github.event.inputs.target_org }} -target-token ${{ secrets.TARGET_TOKEN }}
+      env:
+        SOURCE_TOKEN: ${{ secrets.SOURCE_TOKEN }}
+        TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
+    - name: Run update-repo-visibility command
+      run: ./octo-shift update-repo-visibility -source-org ${{ github.event.inputs.source_org }}  -source-url ${{ github.event.inputs.source_url}}  -source-token ${{ secrets.SOURCE_TOKEN }} -target-org ${{ github.event.inputs.target_org }} -target-token ${{ secrets.TARGET_TOKEN }}
+      env:
+        SOURCE_TOKEN: ${{ secrets.SOURCE_TOKEN }}
+        TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
+    - name: Run update-webhooks command
+      run: ./octo-shift update-webhooks -target-org ${{ github.event.inputs.target_org }} -target-token ${{ secrets.TARGET_TOKEN }} -include-repos true
+      env:
+        TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
+    

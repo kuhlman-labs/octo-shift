@@ -38,7 +38,7 @@ octo-shift update-repo-visibility -source-org <ghes org> -source-url <ghes url> 
 ### update-webhooks
 
 ```bash
-octo-shift update-webhooks -target-org <ghec org> -secret <webhook secret> -include-repo-webhooks <true|false>
+octo-shift update-webhooks -target-org <ghec org> -taget-token <ghec token> -secret <webhook secret> -include-repo-webhooks <true|false>
 ```
 
 ## Contributing
